@@ -21,6 +21,22 @@ array( 'description' => __( 'Displays upcoming shows from Oscar box office syste
 );
 }
 
+// Show date/time comparison function
+private static function compareShowDates($a, $b) {
+	if ((string)$a['StartDate'] == (string)$b['StartDate']) {
+		if ((string)$a['StartTime'] == (string)$b['StartTime']) {
+			return 0;
+		}
+		$a_time = strtotime((string)$a['StartTime']);
+		$b_time = strtotime((string)$b['StartTime']);
+		return ($a_time < $b_time) ? -1 : 1;
+	}
+	$a_date = strtotime((string)$a['StartDate']);
+	$b_date = strtotime((string)$b['StartDate']);
+
+	return ($a_date < $b_date) ? -1 : 1;
+}
+
 // Widget front end
 public function widget( $args, $instance ) {
 $title = apply_filters( 'widget_title', $instance['title'] );
@@ -34,6 +50,26 @@ $body = wp_remote_retrieve_body($response);
 // convert result to XML object
 $xml  = simplexml_load_string($body);
 
+// Add performances to array
+$performances = array();
+foreach ($xml->Performance as $performance) {
+	$performances[] = $performance;
+}
+
+// Sort shows by date ascending
+usort($performances, array($this,'compareShowDates'));
+
+// Add Programmes corresponding to the first performances to a new array
+$programmeIDs = array();
+$programmes = array();
+foreach ($performances as $performance) {
+	// If programme already appeared, delete this performance
+	if (!in_array((string)$performance['ProgrammeID'], $programmeIDs)) {
+		$programmeIDs[] = (string)$performance['ProgrammeID'];
+		$programmes[] = $xml->xpath('//Programme[@ID="' . $performance['ProgrammeID'] . '"]')[0];
+	}
+}
+
 // before and after widget arguments are defined by themes
 echo $args['before_widget'];
 if ( ! empty( $title ) )
@@ -43,7 +79,8 @@ echo $args['before_title'] . $title . $args['after_title'];
 if ($num_shows > 0) {
 	echo '<ul>';
 	$i = 0;
-	foreach ($xml->Programme as $programme) {
+	foreach ($programmes as $programme) {
+	// foreach ($xml->Programme as $programme) {
 		echo '<li><a href="' . $programme['BookingURL'] . '">' . $programme['Title'] . '</a></li>';
 		if (++$i == $num_shows) break; // stop after num_shows shows
 	}
