@@ -22,17 +22,17 @@ array( 'description' => __( 'Displays upcoming shows from Oscar box office syste
 }
 
 // Show date/time comparison function
-public function compareShowDates($a, $b) {
-	if ($a['StartDate'] == $b['StartDate']) {
-		if ($a['StartTime'] == $b['StartTime']) {
+private static function compareShowDates($a, $b) {
+	if ((string)$a['StartDate'] == (string)$b['StartDate']) {
+		if ((string)$a['StartTime'] == (string)$b['StartTime']) {
 			return 0;
 		}
-		$a_time = strtotime($a['StartTime']);
-		$b_time = strtotime($b['StartTime']);
+		$a_time = strtotime((string)$a['StartTime']);
+		$b_time = strtotime((string)$b['StartTime']);
 		return ($a_time < $b_time) ? -1 : 1;
 	}
-	$a_date = strtotime($a['StartDate']);
-	$b_date = strtotime($b['StartDate']);
+	$a_date = strtotime((string)$a['StartDate']);
+	$b_date = strtotime((string)$b['StartDate']);
 
 	return ($a_date < $b_date) ? -1 : 1;
 }
@@ -56,16 +56,16 @@ foreach ($xml->Performance as $performance) {
 	$performances[] = $performance;
 }
 
-// Sort shows by date
-usort($performances, "compareShowDates");
+// Sort shows by date ascending
+usort($performances, array($this,'compareShowDates'));
 
 // Add Programmes corresponding to the first performances to a new array
 $programmeIDs = array();
 $programmes = array();
-foreach ($performances as $key => $performance) {
+foreach ($performances as $performance) {
 	// If programme already appeared, delete this performance
-	if (!in_array($performance['ProgrammeID'], $programmeIDs)) {
-		$programmeIDs[] = $performance['ProgrammeID'];
+	if (!in_array((string)$performance['ProgrammeID'], $programmeIDs)) {
+		$programmeIDs[] = (string)$performance['ProgrammeID'];
 		$programmes[] = $xml->xpath('//Programme[@ID="' . $performance['ProgrammeID'] . '"]')[0];
 	}
 }
