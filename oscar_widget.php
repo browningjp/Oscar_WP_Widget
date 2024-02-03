@@ -2,7 +2,7 @@
 /*
 Plugin Name: Oscar Upcoming Shows
 Description: Widget to display upcoming shows, pulled from Oscar box office system
-Version: 0.1
+Version: 0.2
 Author: Jonny Browning
 */
 
@@ -81,7 +81,7 @@ if ($num_shows > 0) {
 	$i = 0;
 	foreach ($programmes as $programme) {
 	// foreach ($xml->Programme as $programme) {
-		echo '<li><a href="' . $programme['BookingURL'] . '">' . $programme['Title'] . '</a></li>';
+		echo '<li><a href="' . $programme['BookingURL'] . '">' . $programme['ReportTitle'] . '</a></li>';
 		if (++$i == $num_shows) break; // stop after num_shows shows
 	}
 	echo '</ul>';
